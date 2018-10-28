@@ -59,6 +59,10 @@ canvas {
 		<br/>
 	</div>
 	<div class="mdui-bottom-nav mdui-color-theme">
+		<a href="./plot.html" class="mdui-ripple">
+			<i class="mdui-icon material-icons">&#xe6e1;</i>
+			<label>Plot</label>
+		</a>
 		<a href="./vector.html" class="mdui-ripple mdui-bottom-nav-active">
 			<i class="mdui-icon material-icons">&#xe915;</i>
 			<label>Vector</label>
@@ -177,7 +181,8 @@ canvas {
 			var vecexpr = '[(' + xexpr + '),(' + yexpr + ')]';
 			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
 				max = Math.max, min = Math.min, abs = Math.abs,
-				ln = Math.log, pi = Math.pi, e = Math.e;
+				sin = Math.sin, cos = Math.cos, tan = Math.tan,
+				ln = Math.log, pi = Math.pi, e = Math.e, atan = Math.atan;
 
 			paint(function(x, y) {
 				return eval(vecexpr);

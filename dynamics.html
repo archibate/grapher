@@ -48,11 +48,11 @@ canvas {
 		<div class="mdui-row">
 			<div class="mdui-textfield mdui-col-xs-3">
 				<label class="mdui-textfield-label">N steps</label>
-				<input class="mdui-textfield-input" type="text" id="steps" value="2000">
+				<input class="mdui-textfield-input" type="text" id="steps" value="10000">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-2">
+			<div class="mdui-textfield mdui-col-xs-3">
 				<label class="mdui-textfield-label">DT step</label>
-				<input class="mdui-textfield-input" type="text" id="dtps" value="0.018">
+				<input class="mdui-textfield-input" type="text" id="dtps" value="0.008">
 			</div>
 			<div class="mdui-textfield mdui-col-xs-2">
 				<label class="mdui-textfield-label">X origin</label>
@@ -68,21 +68,29 @@ canvas {
 			</div>
 		</div>
 		<button class="mdui-btn mdui-btn-raised mdui-btn-block mdui-ripple mdui-color-theme-accent" onclick="onRepaint()">Paint</button>
-		<div class="mdui-textfield">
-			<label class="mdui-textfield-label">X derivitive</label>
-			<input class="mdui-textfield-input" type="text" id="xdexp" value="10*(y-x)">
-		</div>
-		<div class="mdui-textfield">
-			<label class="mdui-textfield-label">Y derivitive</label>
-			<input class="mdui-textfield-input" type="text" id="ydexp" value="x*(28-z)-y">
-		</div>
-		<div class="mdui-textfield">
-			<label class="mdui-textfield-label">Z derivitive</label>
-			<input class="mdui-textfield-input" type="text" id="zdexp" value="x*y-3*z">
+		<!--br/>
+		<div class="mdui-divider"></div-->
+		<div class="mdui-row">
+			<div class="mdui-textfield mdui-col-xs-4">
+				<label class="mdui-textfield-label">X derivitive</label>
+				<input class="mdui-textfield-input" type="text" id="xdexp" value="10*(y-x)">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-4">
+				<label class="mdui-textfield-label">Y derivitive</label>
+				<input class="mdui-textfield-input" type="text" id="ydexp" value="x*(28-z)-y">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-4">
+				<label class="mdui-textfield-label">Z derivitive</label>
+				<input class="mdui-textfield-input" type="text" id="zdexp" value="x*y-3*z">
+			</div>
 		</div>
 		<br/>
 	</div>
 	<div class="mdui-bottom-nav mdui-color-theme">
+		<a href="./plot.html" class="mdui-ripple">
+			<i class="mdui-icon material-icons">&#xe6e1;</i>
+			<label>Plot</label>
+		</a>
 		<a href="./vector.html" class="mdui-ripple">
 			<i class="mdui-icon material-icons">&#xe915;</i>
 			<label>Vector</label>
@@ -108,7 +116,7 @@ canvas {
 		// get 2d context
 		var ctx = canvas.getContext('2d');
 
-		function onRepaint(field)
+		function onRepaint()
 		{
 			// configuations
 			var vrange = 50; // variable range [-vrange, +vrange]
