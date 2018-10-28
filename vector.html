@@ -162,12 +162,15 @@ canvas {
 			var xexpr = document.getElementById('xexpr').value;
 			var yexpr = document.getElementById('yexpr').value;
 			var vecexpr = '[(' + xexpr + '),(' + yexpr + ')]';
-			var pow = Math.pow, sqrt = Math.sqrt;
+			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
+				max = Math.max, min = Math.min, abs = Math.abs,
+				ln = Math.log, pi = Math.pi, e = Math.e;
 
 			paint(function(x, y) {
 				return eval(vecexpr);
 			});
 		}
+		//if(1)onRepaint();
 	</script>
 </body>
 </html>
