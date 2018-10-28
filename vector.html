@@ -67,6 +67,10 @@ canvas {
 			<i class="mdui-icon material-icons">&#xe3f1;</i>
 			<label>Scalar</label>
 		</a>
+		<a href="./dynamics.html" class="mdui-ripple">
+			<i class="mdui-icon material-icons">&#xe038;</i>
+			<label>Dynamics</label>
+		</a>
 	</div>
 
 	<script src="https://cdn.bootcss.com/mdui/0.4.1/js/mdui.min.js"></script>
@@ -83,8 +87,7 @@ canvas {
 		function paint(field)
 		{
 			// configuations
-			var vrange = 1; // variable range [-vrange, +vrange]
-			var sd = 0.1; // sample destiny := samp width / vrange
+			var sd = 0.1; // sample destiny
 			var ps = 0.2*sd; // pin size scale
 			var hx = 0.17*ps, hy = 0.05*ps; // hel size rate
 			var am2 = 0.03/(ps*ps); // drawable arrow max size
@@ -102,7 +105,7 @@ canvas {
 			ctx.fillRect(0, 0, size, size);
 
 			// fit to variable range scale
-			var scale = 0.5 * size / vrange;
+			var scale = 0.5 * size;
 			ctx.scale(scale, scale);
 
 			// begin to samping each point

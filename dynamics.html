@@ -46,12 +46,40 @@ canvas {
 			</canvas>
 		</div>
 		<div class="mdui-row">
-			<div class="mdui-textfield mdui-col-xs">
-				<label class="mdui-textfield-label">function expression</label>
-				<input class="mdui-textfield-input" type="text" id="fexpr" value="-ln(2*sqrt(x*x+y*y))">
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">N steps</label>
+				<input class="mdui-textfield-input" type="text" id="steps" value="2000">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">DT step</label>
+				<input class="mdui-textfield-input" type="text" id="dtps" value="0.018">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">X origin</label>
+				<input class="mdui-textfield-input" type="text" id="xbeg" value="0">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">Y origin</label>
+				<input class="mdui-textfield-input" type="text" id="ybeg" value="1">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">Z origin</label>
+				<input class="mdui-textfield-input" type="text" id="zbeg" value="0">
 			</div>
 		</div>
 		<button class="mdui-btn mdui-btn-raised mdui-btn-block mdui-ripple mdui-color-theme-accent" onclick="onRepaint()">Paint</button>
+		<div class="mdui-textfield">
+			<label class="mdui-textfield-label">X derivitive</label>
+			<input class="mdui-textfield-input" type="text" id="xdexp" value="10*(y-x)">
+		</div>
+		<div class="mdui-textfield">
+			<label class="mdui-textfield-label">Y derivitive</label>
+			<input class="mdui-textfield-input" type="text" id="ydexp" value="x*(28-z)-y">
+		</div>
+		<div class="mdui-textfield">
+			<label class="mdui-textfield-label">Z derivitive</label>
+			<input class="mdui-textfield-input" type="text" id="zdexp" value="x*y-3*z">
+		</div>
 		<br/>
 	</div>
 	<div class="mdui-bottom-nav mdui-color-theme">
@@ -59,11 +87,11 @@ canvas {
 			<i class="mdui-icon material-icons">&#xe915;</i>
 			<label>Vector</label>
 		</a>
-		<a href="./scalar.html" class="mdui-ripple mdui-bottom-nav-active">
+		<a href="./scalar.html" class="mdui-ripple">
 			<i class="mdui-icon material-icons">&#xe3f1;</i>
 			<label>Scalar</label>
 		</a>
-		<a href="./dynamics.html" class="mdui-ripple">
+		<a href="./dynamics.html" class="mdui-ripple mdui-bottom-nav-active">
 			<i class="mdui-icon material-icons">&#xe038;</i>
 			<label>Dynamics</label>
 		</a>
@@ -80,15 +108,18 @@ canvas {
 		// get 2d context
 		var ctx = canvas.getContext('2d');
 
-		function paint(field)
+		function onRepaint(field)
 		{
 			// configuations
-			var sd = 0.1; // sample destiny
-			var ps = 0.2*sd; // dot size scale
-			var am = 0.06/ps; // drawable dot max size
+			var vrange = 50; // variable range [-vrange, +vrange]
+			var steps = eval(document.getElementById('steps').value); // how many steps till stop
+			var dt = eval(document.getElementById('dtps').value); // time difference per step
 
 			// set my-style
 			ctx.fillStyle = '#000000';
+			ctx.strokeStyle = '#ffffff';
+			ctx.lineWidth = 1; // line width
+			ctx.lineCap = 'round';
 
 			// save original matrix
 			ctx.save();
@@ -97,40 +128,32 @@ canvas {
 			ctx.fillRect(0, 0, size, size);
 
 			// fit to variable range scale
-			var scale = 0.5 * size;
+			var scale = 0.5 * size / vrange;
 			ctx.scale(scale, scale);
-			ctx.translate(0, 1);
+			ctx.translate(vrange, vrange);
 
-			// begin to samping each point
-			for (var y = -1; y <= 1; y += sd)
+			var x = eval(document.getElementById('xbeg').value);
+			var y = eval(document.getElementById('ybeg').value);
+			var z = eval(document.getElementById('zbeg').value);
+
+			// start from the original point
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+
+			// begin to iterating each step
+			for (var i = 0; i < steps; i++)
 			{
-				// save central matrix
-				ctx.save();
+				// intgrate by time pass
+				x += eval(document.getElementById('xdexp').value) * dt;
+				y += eval(document.getElementById('ydexp').value) * dt;
+				z += eval(document.getElementById('zdexp').value) * dt;
 
-				// translate to left of this line
-				ctx.translate(0, y);
-
-				for (var x = -1; x <= 1; x += sd)
-				{
-					// get field value
-					var f = field(x, y);
-
-					// limit the size
-					f = Math.max(-am, Math.min(am, f));
-
-					// draw the dot
-					ctx.fillStyle = f > 0 ? '#ff0000' : '#0000ff';
-					ctx.beginPath();
-					ctx.arc(0, 0, Math.abs(f) * ps, 0, 2 * Math.PI);
-					ctx.fill();
-
-					// move to the next point to draw
-					ctx.translate(sd, 0);
-				}
-
-				// restore to central
-				ctx.restore();
+				// link line to the new point
+				ctx.lineTo(x, y);
 			}
+
+			// draw all the lines
+			ctx.stroke();
 
 			// restore original matrix
 			ctx.restore();
@@ -143,17 +166,6 @@ canvas {
 				return a * ri3;
 			});
 		}*/
-
-		function onRepaint() {
-			var fexpr = document.getElementById('fexpr').value;
-			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
-				max = Math.max, min = Math.min, abs = Math.abs,
-				ln = Math.log, pi = Math.pi, e = Math.e;
-
-			paint(function(x, y) {
-				return eval(fexpr);
-			});
-		}
 		if(1)onRepaint();
 	</script>
 </body>
