@@ -46,44 +46,30 @@ canvas {
 			</canvas>
 		</div>
 		<div class="mdui-row">
-			<div class="mdui-textfield mdui-col-xs-3">
-				<label class="mdui-textfield-label">N steps</label>
-				<input class="mdui-textfield-input" type="text" id="steps" value="10000">
+			<div class="mdui-textfield mdui-col-xs-6">
+				<label class="mdui-textfield-label">X compoment</label>
+				<input class="mdui-textfield-input" type="text" id="xexpr" value="(x-A)/pow(pow(x-A,2)+y*y,3/2)-(x+A)/pow(pow(x+A,2)+y*y,3/2)">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-3">
-				<label class="mdui-textfield-label">DT step</label>
-				<input class="mdui-textfield-input" type="text" id="dtps" value="0.008">
+			<div class="mdui-textfield mdui-col-xs-6">
+				<label class="mdui-textfield-label">Y compoment</label>
+				<input class="mdui-textfield-input" type="text" id="yexpr" value="y/pow(pow(x-A,2)+y*y,3/2)-y/pow(pow(x+A,2)+y*y,3/2)">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-2">
-				<label class="mdui-textfield-label">X origin</label>
-				<input class="mdui-textfield-input" type="text" id="xbeg" value="0">
+		</div>
+		<div class="mdui-row">
+			<div class="mdui-col-xs-6">
+				<label class="mdui-textfield-label">parameter A</label>
+				<label class="mdui-slider mdui-slider-discrete">
+					<input type="range" step="0.02" min="0" max="2" id="para" onchange="onRepaint()"/>
+				</label>
 			</div>
-			<div class="mdui-textfield mdui-col-xs-2">
-				<label class="mdui-textfield-label">Y origin</label>
-				<input class="mdui-textfield-input" type="text" id="ybeg" value="1">
-			</div>
-			<div class="mdui-textfield mdui-col-xs-2">
-				<label class="mdui-textfield-label">Z origin</label>
-				<input class="mdui-textfield-input" type="text" id="zbeg" value="0">
+			<div class="mdui-col-xs-6">
+				<label class="mdui-textfield-label">parameter B</label>
+				<label class="mdui-slider mdui-slider-discrete">
+					<input type="range" step="0.02" min="0" max="2" id="parb" onchange="onRepaint()"/>
+				</label>
 			</div>
 		</div>
 		<button class="mdui-btn mdui-btn-raised mdui-btn-block mdui-ripple mdui-color-theme-accent" onclick="onRepaint()">Paint</button>
-		<!--br/>
-		<div class="mdui-divider"></div-->
-		<div class="mdui-row">
-			<div class="mdui-textfield mdui-col-xs-4">
-				<label class="mdui-textfield-label">X derivitive</label>
-				<input class="mdui-textfield-input" type="text" id="xdexp" value="10*(y-x)">
-			</div>
-			<div class="mdui-textfield mdui-col-xs-4">
-				<label class="mdui-textfield-label">Y derivitive</label>
-				<input class="mdui-textfield-input" type="text" id="ydexp" value="x*(28-z)-y">
-			</div>
-			<div class="mdui-textfield mdui-col-xs-4">
-				<label class="mdui-textfield-label">Z derivitive</label>
-				<input class="mdui-textfield-input" type="text" id="zdexp" value="x*y-3*z">
-			</div>
-		</div>
 		<br/>
 	</div>
 	<div class="mdui-bottom-nav mdui-color-theme">
@@ -91,7 +77,7 @@ canvas {
 			<i class="mdui-icon material-icons">&#xe6e1;</i>
 			<label>Plot</label>
 		</a>
-		<a href="./vector.html" class="mdui-ripple">
+		<a href="./vector.html" class="mdui-ripple mdui-bottom-nav-active">
 			<i class="mdui-icon material-icons">&#xe915;</i>
 			<label>Vector</label>
 		</a>
@@ -99,13 +85,9 @@ canvas {
 			<i class="mdui-icon material-icons">&#xe3f1;</i>
 			<label>Scalar</label>
 		</a>
-		<a href="./dynamics.html" class="mdui-ripple mdui-bottom-nav-active">
+		<a href="./dynamics.html" class="mdui-ripple">
 			<i class="mdui-icon material-icons">&#xe038;</i>
 			<label>Dynamics</label>
-		</a>
-		<a href="./electro.html" class="mdui-ripple">
-			<i class="mdui-icon material-icons">&#xe193;</i>
-			<label>Electro</label>
 		</a>
 	</div>
 
@@ -120,17 +102,18 @@ canvas {
 		// get 2d context
 		var ctx = canvas.getContext('2d');
 
-		function onRepaint()
+		function paint(field)
 		{
 			// configuations
-			var vrange = 50; // variable range [-vrange, +vrange]
-			var steps = eval(document.getElementById('steps').value); // how many steps till stop
-			var dt = eval(document.getElementById('dtps').value); // time difference per step
+			var sd = 0.1; // sample destiny
+			var ps = 0.2*sd; // pin size scale
+			var hx = 0.17*ps, hy = 0.05*ps; // hel size rate
+			var am2 = 0.03/(ps*ps); // drawable arrow max size
 
 			// set my-style
 			ctx.fillStyle = '#000000';
 			ctx.strokeStyle = '#ffffff';
-			ctx.lineWidth = 0.3; // line width
+			ctx.lineWidth = 0.005; // line width
 			ctx.lineCap = 'round';
 
 			// save original matrix
@@ -140,28 +123,56 @@ canvas {
 			ctx.fillRect(0, 0, size, size);
 
 			// fit to variable range scale
-			var scale = 0.5 * size / vrange;
+			var scale = 0.5 * size;
 			ctx.scale(scale, scale);
-			ctx.translate(vrange, vrange);
-
-			var x = eval(document.getElementById('xbeg').value);
-			var y = eval(document.getElementById('ybeg').value);
-			var z = eval(document.getElementById('zbeg').value);
-
-			// start from the original point
 			ctx.beginPath();
-			ctx.moveTo(x, y);
 
-			// begin to iterating each step
-			for (var i = 0; i < steps; i++)
+			// begin to samping each point
+			for (var y = -1; y <= 1; y += sd)
 			{
-				// intgrate by time pass
-				x += eval(document.getElementById('xdexp').value) * dt;
-				y += eval(document.getElementById('ydexp').value) * dt;
-				z += eval(document.getElementById('zdexp').value) * dt;
+				// save central matrix
+				ctx.save();
 
-				// link line to the new point
-				ctx.lineTo(x, y);
+				// translate to left of this line
+				ctx.translate(0, y);
+
+				for (var x = -1; x <= 1; x += sd)
+				{
+					// get field value
+					var uv = field(x, y);
+					var u = uv[0], v = uv[1];
+
+					// if the arrow is not too big
+					if (u*u + v*v < am2) {
+
+						// save current matrix
+						ctx.save();
+
+						// transform (rotate + scale) to correct direction
+						ctx.transform(
+						u,  v, // x-axis
+						v, -u, // y-axis
+						0, 1); // centered at the arrow target point
+
+						// draw the arrow pin
+						ctx.moveTo(0, 0);
+						ctx.lineTo(-ps, 0); // alone rev x-axis
+
+						// draw two arrow hel
+						ctx.moveTo(-hx, -hy);
+						ctx.lineTo(0, 0);
+						ctx.lineTo(-hx, hy);
+
+						// restore old matrix
+						ctx.restore();
+					}
+
+					// move to the next point to draw
+					ctx.translate(sd, 0);
+				}
+
+				// restore to central
+				ctx.restore();
 			}
 
 			// draw all the lines
@@ -178,6 +189,22 @@ canvas {
 				return a * ri3;
 			});
 		}*/
+
+		function onRepaint() {
+			var xexpr = document.getElementById('xexpr').value;
+			var yexpr = document.getElementById('yexpr').value;
+			var A = document.getElementById('para').value;
+			var B = document.getElementById('parb').value;
+			var vecexpr = '[(' + xexpr + '),(' + yexpr + ')]';
+			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
+				max = Math.max, min = Math.min, abs = Math.abs,
+				sin = Math.sin, cos = Math.cos, tan = Math.tan,
+				ln = Math.log, pi = Math.pi, e = Math.e, atan = Math.atan;
+
+			paint(function(x, y) {
+				return eval(vecexpr);
+			});
+		}
 		if(1)onRepaint();
 	</script>
 </body>
