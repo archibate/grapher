@@ -45,24 +45,41 @@ canvas {
 			<span style="color: red;">ERROR: HTML5 not supported.<span>
 			</canvas>
 		</div>
-		<form onchange="onRepaint()">
-			<label class="mdui-radio">
-				<input type="radio" name="group1" checked/>
-				<i class="mdui-radio-icon"></i>
-				Electronic
-			</label>
-			&nbsp;
-			<label class="mdui-radio">
-				<input type="radio" name="group1" id="ismagnetic"/>
-				<i class="mdui-radio-icon"></i>
-				Magnetic
-			</label>
-		</form>
+		<div class="mdui-row">
+			<div class="mdui-textfield mdui-col-xs-10">
+				<label class="mdui-textfield-label">f(x) expression</label>
+				<input class="mdui-textfield-input" type="text" id="fexp" value="sin(x*10)">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-2">
+				<label class="mdui-textfield-label">X step scale</label>
+				<input class="mdui-textfield-input" type="text" id="dxps" value="0.006">
+			</div>
+		</div>
+		<div class="mdui-row">
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">from X</label>
+				<input class="mdui-textfield-input" type="text" id="xfrom" value="-1">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">to X</label>
+				<input class="mdui-textfield-input" type="text" id="xto" value="1">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">from Y</label>
+				<input class="mdui-textfield-input" type="text" id="yfrom" value="-1">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-3">
+				<label class="mdui-textfield-label">to Y</label>
+				<input class="mdui-textfield-input" type="text" id="yto" value="1">
+			</div>
+		</div>
 		<button class="mdui-btn mdui-btn-raised mdui-btn-block mdui-ripple mdui-color-theme-accent" onclick="onRepaint()">Paint</button>
+		<!--br/>
+		<div class="mdui-divider"></div-->
 		<br/>
 	</div>
 	<div class="mdui-bottom-nav mdui-color-theme">
-		<a href="./plot.html" class="mdui-ripple">
+		<a href="./plot.html" class="mdui-ripple mdui-bottom-nav-active">
 			<i class="mdui-icon material-icons">&#xe6e1;</i>
 			<label>Plot</label>
 		</a>
@@ -78,7 +95,7 @@ canvas {
 			<i class="mdui-icon material-icons">&#xe038;</i>
 			<label>Dynamics</label>
 		</a>
-		<a href="./electro.html" class="mdui-ripple mdui-bottom-nav-active">
+		<a href="./electro.html" class="mdui-ripple">
 			<i class="mdui-icon material-icons">&#xe193;</i>
 			<label>Electro</label>
 		</a>
@@ -95,39 +112,18 @@ canvas {
 		// get 2d context
 		var ctx = canvas.getContext('2d');
 
-		function getColorOfMagnitude(m)
-		{
-			m *= 0.15;
-			if (m < 0.5)
-				return [255 * 2 * m, 0, 0];
-			m -= 0.5;
-			m *= 0.8;
-			if (m < 1)
-				return [255 * Math.sqrt(1 - m), 255 * Math.sqrt(m), 0];
-			m -= 1;
-			m *= 0.25;
-			if (m < 1)
-				return [0, 128 + 127 * Math.sqrt(1 - m), 255 * Math.sqrt(m)];
-			m -= 1;
-			m *= 0.063;
-			if (m < 1)
-				return [255 * Math.sqrt(m), 128 + 127 * Math.sqrt(m), 255];
-			return [0, 0, 0];
-		}
-
-		function paint(field)
+		function onRepaint()
 		{
 			// configuations
-			var sd = 0.1; // sample destiny
-			var ps = 0.2*sd; // pin size scale
-			var hx = 0.17*ps, hy = 0.05*ps; // hel size rate
-			var am1 = 0.16/ps; // drawable arrow max size
+			var xfrom = eval(document.getElementById('xfrom').value); // minimumal x
+			var xto = eval(document.getElementById('xto').value); // maximumal x
+			var yfrom = eval(document.getElementById('yfrom').value); // minimumal y
+			var yto = eval(document.getElementById('yto').value); // maximumal y
+			var dx = Math.abs(eval(document.getElementById('dxps').value) * (xto - xfrom)); // x difference per step
 
 			// set my-style
 			ctx.fillStyle = '#000000';
 			ctx.strokeStyle = '#ffffff';
-			ctx.lineWidth = 0.0018; // line width
-			ctx.lineCap = 'round';
 
 			// save original matrix
 			ctx.save();
@@ -136,84 +132,36 @@ canvas {
 			ctx.fillRect(0, 0, size, size);
 
 			// fit to variable range scale
-			var scale = 0.5 * size;
-			ctx.scale(scale, scale);
+			var xs = size / (xto - xfrom), ys = size / (yfrom - yto);
+			var xt = (xto - xfrom) / 2, yt = (yfrom - yto) / 2;
 
-			// begin to samping each point
-			for (var y = -1; y <= 1; y += sd)
+			ctx.lineWidth = Math.max(Math.min(dx * xs, 3.5), 1.5);
+			ctx.lineCap = 'round';
+
+			// start from the original point
+			ctx.beginPath();
+
+			var funn = ctx.moveTo.bind(ctx);
+
+			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
+				max = Math.max, min = Math.min, abs = Math.abs,
+				sin = Math.sin, cos = Math.cos, tan = Math.tan,
+				ln = Math.log, pi = Math.pi, e = Math.e, atan = Math.atan;
+
+			// begin to iterating each step
+			for (var x = xfrom; x < xto; x += dx)
 			{
-				// save central matrix
-				ctx.save();
+				// intgrate by time pass
+				y = eval(document.getElementById('fexp').value);
 
-				// translate to left of this line
-				ctx.translate(0, y);
+				// link line to the new point
+				funn(xs * (x + xt), ys * (y + yt));
 
-				for (var x = -1; x <= 1; x += sd)
-				{
-					// get field value
-					var uv = field(x, y);
-					var u = uv[0], v = uv[1];
-
-					var l = Math.sqrt(u*u + v*v);
-					var len = 0.5 * am1;// * Math.log(Math.log(l + 1) + 1); if (len < am1)
-
-					// save current matrix
-					ctx.save();
-
-					// normalize and re-expand
-					len /= l;
-					u *= len;
-					v *= len;
-
-					// transform (rotate + scale) to correct direction
-					ctx.transform(
-						u,  v, // x-axis
-						v, -u, // y-axis
-						0, 1); // centered at the arrow target point
-
-					// centering to arrow center
-					ctx.translate(0.5 * ps, 0);
-
-					// re-begin arrow path
-					ctx.beginPath();
-
-					// draw the arrow pin
-					ctx.moveTo(0, 0);
-					ctx.lineTo(-ps, 0); // alone rev x-axis
-
-					// draw two arrow hel
-					ctx.moveTo(-hx, -hy);
-					ctx.lineTo(0, 0);
-					ctx.lineTo(-hx, hy);
-
-					// set line color
-					var c = getColorOfMagnitude(l);
-					ctx.strokeStyle = 'rgb('+c[0]+','+c[1]+','+c[2]+')';
-
-					// draw this line
-					ctx.stroke();
-
-					// restore old matrix
-					ctx.restore();
-
-					// move to the next point to draw
-					ctx.translate(sd, 0);
-				}
-
-				// restore to central
-				ctx.restore();
+				funn = ctx.lineTo.bind(ctx);
 			}
 
-			for (var i in quantities) {
-				// draw the quantity dot
-				var q = quantities[i];
-				var x = q[1], y = q[2];
-				q = q[0];
-				ctx.fillStyle = q > 0 ? '#ff0000' : '#0000ff';
-				ctx.beginPath();
-				ctx.arc(1 + x, 1 + y, 0.02, 0, 2 * Math.PI);
-				ctx.fill();
-			}
+			// draw all the lines
+			ctx.stroke();
 
 			// restore original matrix
 			ctx.restore();
@@ -226,27 +174,6 @@ canvas {
 				return a * ri3;
 			});
 		}*/
-
-		magnetic = false;
-		quantities = [[400, 0.001, 0], [-400, -0.001, 0]];
-		function getField(x, y) {
-			var u = 0, v = 0;
-			for (var i in quantities) {
-				var q = quantities[i];
-				var dx = x - q[1], dy = y - q[2];
-				q = q[0] * Math.pow(dx * dx + dy * dy, -1.5);
-				dx *= q;
-				dy *= q;
-				u += dx;
-				v += dy;
-			}
-			return magnetic ? [v, -u] : [u, v];
-		}
-
-		function onRepaint() {
-			magnetic = document.getElementById('ismagnetic').checked;
-			paint(getField);
-		}
 		if(1)onRepaint();
 	</script>
 </body>
