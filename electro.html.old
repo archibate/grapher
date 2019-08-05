@@ -228,7 +228,7 @@ canvas {
 		}*/
 
 		magnetic = false;
-		quantities = [[1, 0.01, 0], [1, 0, 0]];
+		quantities = [[400, 0.001, 0], [-400, -0.001, 0]];
 		function getField(x, y) {
 			var u = 0, v = 0;
 			for (var i in quantities) {
@@ -243,54 +243,54 @@ canvas {
 			return magnetic ? [v, -u] : [u, v];
 		}
 
-		var kpDelta = 0.01;
-		document.addEventListener('keyup', function(e) {
-			kpDelta = 0.01;
-		});
-		document.addEventListener('keypress', function(e) {
-			var key = String.fromCharCode(e.keyCode || e.which);
-			kpDelta = Math.min(0.06, kpDelta + 0.01);
-			switch (key) {
-			case 'h':
-				quantities[1][1] -= kpDelta;
-				onRepaint();
-				break;
-			case 'l':
-				quantities[1][1] += kpDelta;
-				onRepaint();
-				break;
-			case 'j':
-				quantities[1][2] += kpDelta;
-				onRepaint();
-				break;
-			case 'k':
-				quantities[1][2] -= kpDelta;
-				onRepaint();
-				break;
-			case 'a':
-				quantities[0][1] -= kpDelta;
-				onRepaint();
-				break;
-			case 'd':
-				quantities[0][1] += kpDelta;
-				onRepaint();
-				break;
-			case 's':
-				quantities[0][2] += kpDelta;
-				onRepaint();
-				break;
-			case 'w':
-				quantities[0][2] -= kpDelta;
-				onRepaint();
-				break;
-			}
-		});
-
 		function onRepaint() {
 			magnetic = document.getElementById('ismagnetic').checked;
 			paint(getField);
 		}
 		if(1)onRepaint();
+
+		var mouseSelect;
+
+		function selectObject(x, y) {
+			var dm = 0.25 * size * size, sel;
+			for (var i in quantities) {
+				var q = quantities[i];
+				var dx = x - q[1] * size, dy = y - q[2] * size;
+				var d2 = dx * dx + dy * dy;
+				console.log(x, y, d2, dm);
+				if (d2 < dm) {
+					sel = quantities[i];
+					dm = d2;
+				}
+			}
+			console.log(sel);
+			return sel;
+		}
+
+		function onMouseDown(e) {
+			e.preventDefault();
+			var x = e.clientX, y = e.clientY;
+			mouseSelect = selectObject(x, y);
+		}
+
+		function onMouseUp(e) {
+			mouseSelect = undefined;
+		}
+
+		function onMouseMove(e) {
+			if(!mouseSelect)
+				return;
+			console.log('!!!!!!!!!!!');
+
+			e.preventDefault();
+			var x = e.clientX, y = e.clientY;
+			mouseSelect[1] = x;
+			mouseSelect[2] = y;
+		}
+
+		canvas.onmouseup = onMouseUp;
+		canvas.onmousedown = onMouseDown;
+		canvas.onmousemove = onMouseMove;
 	</script>
 </body>
 </html>

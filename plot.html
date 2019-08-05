@@ -46,29 +46,45 @@ canvas {
 			</canvas>
 		</div>
 		<div class="mdui-row">
-			<div class="mdui-textfield mdui-col-xs-10">
+			<div class="mdui-textfield mdui-col-xs-5">
 				<label class="mdui-textfield-label">f(x) expression</label>
-				<input class="mdui-textfield-input" type="text" id="fexp" value="0.2*sin(x*10)">
+				<input class="mdui-textfield-input" type="text" id="fexp" value="0.15*sin((x+0.01*b)*100)">
+			</div>
+			<div class="mdui-textfield mdui-col-xs-5">
+				<label class="mdui-textfield-label">g(x) expression</label>
+				<input class="mdui-textfield-input" type="text" id="gexp" value="0.15*sin(x*(100+a))">
 			</div>
 			<div class="mdui-textfield mdui-col-xs-2">
 				<label class="mdui-textfield-label">X step scale</label>
-				<input class="mdui-textfield-input" type="text" id="dxps" value="0.006">
+				<input class="mdui-textfield-input" type="text" id="dxps" value="0.0005">
 			</div>
 		</div>
-		<div class="mdui-row">
-			<div class="mdui-textfield mdui-col-xs-3">
+		<div class="mdui-row mdui-valign">
+			<div class="mdui-col-xs-4">
+				<label class="mdui-textfield-label">parameter A</label>
+				<label class="mdui-slider mdui-slider-discrete">
+					<input type="range" step="0.1" min="-10" max="10" id="para" onchange="onRepaint()" oninput="onRepaint()"/>
+				</label>
+			</div>
+			<div class="mdui-col-xs-4">
+				<label class="mdui-textfield-label">parameter B</label>
+				<label class="mdui-slider mdui-slider-discrete">
+					<input type="range" step="0.1" min="-10" max="10" id="parb" onchange="onRepaint()" oninput="onRepaint()"/>
+				</label>
+			</div>
+			<div class="mdui-textfield mdui-col-xs-1">
 				<label class="mdui-textfield-label">from X</label>
 				<input class="mdui-textfield-input" type="text" id="xfrom" value="-1">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-3">
+			<div class="mdui-textfield mdui-col-xs-1">
 				<label class="mdui-textfield-label">to X</label>
 				<input class="mdui-textfield-input" type="text" id="xto" value="1">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-3">
+			<div class="mdui-textfield mdui-col-xs-1">
 				<label class="mdui-textfield-label">from Y</label>
 				<input class="mdui-textfield-input" type="text" id="yfrom" value="-1">
 			</div>
-			<div class="mdui-textfield mdui-col-xs-3">
+			<div class="mdui-textfield mdui-col-xs-1">
 				<label class="mdui-textfield-label">to Y</label>
 				<input class="mdui-textfield-input" type="text" id="yto" value="1">
 			</div>
@@ -123,7 +139,6 @@ canvas {
 
 			// set my-style
 			ctx.fillStyle = '#000000';
-			ctx.strokeStyle = '#ffffff';
 
 			// save original matrix
 			ctx.save();
@@ -138,29 +153,49 @@ canvas {
 			ctx.lineWidth = Math.max(Math.min(dx * xs, 3.5), 1.5);
 			ctx.lineCap = 'round';
 
-			// start from the original point
-			ctx.beginPath();
-
-			var funn = ctx.moveTo.bind(ctx);
-
 			var pow = Math.pow, sqrt = Math.sqrt, exp = Math.exp,
 				max = Math.max, min = Math.min, abs = Math.abs,
 				sin = Math.sin, cos = Math.cos, tan = Math.tan,
 				ln = Math.log, pi = Math.pi, e = Math.e, atan = Math.atan;
+			var a = parseFloat(document.getElementById('para').value);
+			var b = parseFloat(document.getElementById('parb').value);
 
-			// begin to iterating each step
-			for (var x = xfrom; x < xto; x += dx)
-			{
-				// intgrate by time pass
-				y = eval(document.getElementById('fexp').value);
+			function draw(expr) {
+				var funn = ctx.moveTo.bind(ctx);
 
-				// link line to the new point
-				funn(xs * (x + xt), ys * (y + yt));
+				ctx.beginPath();
 
-				funn = ctx.lineTo.bind(ctx);
+				// begin to iterating each step
+				for (var x = xfrom; x < xto; x += dx)
+				{
+					// intgrate by time pass
+					y = eval(expr);
+
+					// link line to the new point
+					funn(xs * (x + xt), ys * (y + yt));
+
+					funn = ctx.lineTo.bind(ctx);
+				}
 			}
 
-			// draw all the lines
+			draw('0.5');
+			ctx.strokeStyle = 'white';
+			ctx.stroke();
+
+			draw('-0.5');
+			ctx.strokeStyle = 'white';
+			ctx.stroke();
+
+			draw('('+document.getElementById('fexp').value+')-0.5');
+			ctx.strokeStyle = 'darkcyan';
+			ctx.stroke();
+
+			draw('('+document.getElementById('gexp').value+')-0.5');
+			ctx.strokeStyle = 'red';
+			ctx.stroke();
+
+			draw('('+document.getElementById('fexp').value+')+('+document.getElementById('gexp').value+')+0.5');
+			ctx.strokeStyle = 'gold';
 			ctx.stroke();
 
 			// restore original matrix
