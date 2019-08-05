@@ -48,11 +48,11 @@ canvas {
 		<div class="mdui-row">
 			<div class="mdui-textfield mdui-col-xs-6">
 				<label class="mdui-textfield-label">X compoment</label>
-				<input class="mdui-textfield-input" type="text" id="xexpr" value="-y/pow(x*x+y*y,3/2)">
+				<input class="mdui-textfield-input" type="text" id="xexpr" value="(0.5*x-y)/pow(x*x+y*y,3/2)">
 			</div>
 			<div class="mdui-textfield mdui-col-xs-6">
 				<label class="mdui-textfield-label">Y compoment</label>
-				<input class="mdui-textfield-input" type="text" id="yexpr" value="+x/pow(x*x+y*y,3/2)">
+				<input class="mdui-textfield-input" type="text" id="yexpr" value="(0.5*y+x)/pow(x*x+y*y,3/2)">
 			</div>
 		</div>
 		<button class="mdui-btn mdui-btn-raised mdui-btn-block mdui-ripple mdui-color-theme-accent" onclick="onRepaint()">Paint</button>
